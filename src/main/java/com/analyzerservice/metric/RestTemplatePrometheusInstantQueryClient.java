@@ -2,6 +2,7 @@ package com.analyzerservice.metric;
 
 import com.analyzerservice.config.PrometheusProperties;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
@@ -44,13 +45,13 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             return 0.0;
         }
 
-        log.info("RAW promql = [{}]", promql);
+        String encoded = URLEncoder.encode(promql, StandardCharsets.UTF_8);
 
         URI uri = UriComponentsBuilder
-        .fromUriString(base + "/api/v1/query")
-        .queryParam("query", promql)
-        .build(true)
-        .toUri();
+            .fromUriString(base + "/api/v1/query")
+            .queryParam("query", encoded)
+            .build(true)   // 이미 인코딩된 값
+            .toUri();
 
         try {
             PrometheusInstantQueryResponse body = restTemplate.getForObject(uri, PrometheusInstantQueryResponse.class);
