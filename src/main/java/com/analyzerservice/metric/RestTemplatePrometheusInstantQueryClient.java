@@ -36,10 +36,7 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             return 0.0;
         }
 
-        promql = promql
-        .replace("\n", " ")
-        .replace("\r", " ")
-        .trim();
+        promql = promql.replace("\n", " ").trim();
 
         String base = trimTrailingSlash(prometheusProperties.getUrl());
         if (base.isEmpty()) {
@@ -48,13 +45,12 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
         }
 
         log.info("RAW promql = [{}]", promql);
-        
+
         URI uri = UriComponentsBuilder
-            .fromUriString(base + "/api/v1/query")
-            .queryParam("query", promql)
-            .encode()   // 여기서만 인코딩
-            .build()
-            .toUri();
+        .fromUriString(base + "/api/v1/query")
+        .queryParam("query", promql)
+        .build(true)
+        .toUri();
 
         try {
             PrometheusInstantQueryResponse body = restTemplate.getForObject(uri, PrometheusInstantQueryResponse.class);
