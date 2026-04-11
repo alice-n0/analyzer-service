@@ -1,0 +1,86 @@
+{
+  "groups": [
+    {
+      "name": "analyzer.thresholds",
+      "type": "com.analyzerservice.config.AnalyzerThresholdProperties",
+      "sourceType": "com.analyzerservice.config.AnalyzerThresholdProperties"
+    },
+    {
+      "name": "loki",
+      "type": "com.analyzerservice.config.LokiProperties",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "prometheus",
+      "type": "com.analyzerservice.config.PrometheusProperties",
+      "sourceType": "com.analyzerservice.config.PrometheusProperties"
+    },
+    {
+      "name": "prometheus.queries",
+      "type": "com.analyzerservice.config.PrometheusProperties$Queries",
+      "sourceType": "com.analyzerservice.config.PrometheusProperties",
+      "sourceMethod": "getQueries()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "analyzer.thresholds.error-rate",
+      "type": "java.lang.Double",
+      "sourceType": "com.analyzerservice.config.AnalyzerThresholdProperties"
+    },
+    {
+      "name": "analyzer.thresholds.p95-latency-ms",
+      "type": "java.lang.Double",
+      "sourceType": "com.analyzerservice.config.AnalyzerThresholdProperties"
+    },
+    {
+      "name": "loki.error-log-query",
+      "type": "java.lang.String",
+      "description": "{@code \/loki\/api\/v1\/query_range}에 전달할 LogQL",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "loki.lookback-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.analyzerservice.config.LokiProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "loki.max-lines",
+      "type": "java.lang.Integer",
+      "sourceType": "com.analyzerservice.config.LokiProperties",
+      "defaultValue": 0
+    },
+    {
+      "name": "loki.query-range-path",
+      "type": "java.lang.String",
+      "description": "Loki HTTP API 경로 (베이스 URL에 이어 붙임)",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "loki.url",
+      "type": "java.lang.String",
+      "description": "Loki 베이스 URL (Kubernetes 등에서는 서비스 DNS 사용)",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "prometheus.queries.error-rate",
+      "type": "java.lang.String",
+      "description": "에러 비율(0~1 스칼라)을 반환하는 PromQL.",
+      "sourceType": "com.analyzerservice.config.PrometheusProperties$Queries"
+    },
+    {
+      "name": "prometheus.queries.p95-latency",
+      "type": "java.lang.String",
+      "description": "p95 레이턴시(초 단위 스칼라)를 반환하는 PromQL.",
+      "sourceType": "com.analyzerservice.config.PrometheusProperties$Queries"
+    },
+    {
+      "name": "prometheus.url",
+      "type": "java.lang.String",
+      "description": "Prometheus 서버 베이스 URL (Kubernetes 등에서는 서비스 DNS 사용)",
+      "sourceType": "com.analyzerservice.config.PrometheusProperties"
+    }
+  ],
+  "hints": []
+}

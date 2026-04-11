@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.analyzerservice.scheduler.AnalyzerSchedulerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-04-11T02:50:11" hostname="hjui-MacBookPro.local" time="0.53">
+  <properties/>
+  <testcase name="nullLogList_replacedWithEmptyList()" classname="com.analyzerservice.scheduler.AnalyzerSchedulerTest" time="0.523"/>
+  <testcase name="skipsLogsAndAiWhenHealthy()" classname="com.analyzerservice.scheduler.AnalyzerSchedulerTest" time="0.003"/>
+  <testcase name="collectsLogsAndCallsAnalyzerWhenAnomaly()" classname="com.analyzerservice.scheduler.AnalyzerSchedulerTest" time="0.004"/>
+  <system-out><![CDATA[11:50:11.802 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 시작
+11:50:11.803 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 완료: latencySeconds=1.0 (Prometheus p95 PromQL)
+11:50:11.803 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [2/4] error rate 조회 완료: errorRate=0.01
+11:50:11.803 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 시작 (임계: latency>0.5, errorRate>0.05)
+11:50:11.804 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 완료: anomaly=true, detail=latency(1.0000초)가 임계값(0.50초) 초과
+11:50:11.804 [Test worker] WARN com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4] anomaly 발생 — 후속 처리 시작: latency(1.0000초)가 임계값(0.50초) 초과
+11:50:11.804 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-a] 로그 수집 시작
+11:50:11.804 [Test worker] WARN com.analyzerservice.scheduler.AnalyzerScheduler -- errorLogSource가 null 목록을 반환했습니다. 빈 목록으로 대체합니다.
+11:50:11.804 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-a] 로그 수집 완료: lineCount=0
+11:50:11.804 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-b] IncidentAnalyzer 호출 시작
+11:50:11.805 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-b] IncidentAnalyzer 호출 완료: responseLength=2
+11:50:11.805 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-c] AI 분석 결과 출력:
+ok
+11:50:11.811 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 시작
+11:50:11.812 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 완료: latencySeconds=0.1 (Prometheus p95 PromQL)
+11:50:11.812 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [2/4] error rate 조회 완료: errorRate=0.01
+11:50:11.812 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 시작 (임계: latency>0.5, errorRate>0.05)
+11:50:11.812 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 완료: anomaly=false, detail=이상 없음: latency≤0.50초, errorRate≤0.05
+11:50:11.812 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4] 정상 — 로그 수집·AI 호출 생략
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 시작
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [1/4] latency 조회 완료: latencySeconds=1.0 (Prometheus p95 PromQL)
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [2/4] error rate 조회 완료: errorRate=0.01
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 시작 (임계: latency>0.5, errorRate>0.05)
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [3/4] anomaly 판단 완료: anomaly=true, detail=latency(1.0000초)가 임계값(0.50초) 초과
+11:50:11.815 [Test worker] WARN com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4] anomaly 발생 — 후속 처리 시작: latency(1.0000초)가 임계값(0.50초) 초과
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-a] 로그 수집 시작
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-a] 로그 수집 완료: lineCount=1
+11:50:11.815 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-b] IncidentAnalyzer 호출 시작
+11:50:11.816 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-b] IncidentAnalyzer 호출 완료: responseLength=4
+11:50:11.816 [Test worker] INFO com.analyzerservice.scheduler.AnalyzerScheduler -- [4/4-c] AI 분석 결과 출력:
+mock
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

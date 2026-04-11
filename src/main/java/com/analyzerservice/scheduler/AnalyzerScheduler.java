@@ -1,0 +1,116 @@
+package com.analyzerservice.scheduler;
+
+import com.analyzerservice.ai.IncidentAnalyzer;
+import com.analyzerservice.detector.AnomalyDetectionResult;
+import com.analyzerservice.detector.AnomalyDetector;
+import com.analyzerservice.log.ErrorLogSource;
+import com.analyzerservice.metric.SystemMetrics;
+import com.analyzerservice.metric.SystemMetricsReader;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+/**
+ * 주기적으로 메트릭을 조회하고, 이상 시 로그 수집 및 AI 분석을 오케스트레이션합니다.
+ */
+@Component
+public class AnalyzerScheduler {
+
+    private static final Logger log = LoggerFactory.getLogger(AnalyzerScheduler.class);
+
+    private static final String MDC_CYCLE_ID = "cycleId";
+
+    private final SystemMetricsReader systemMetricsReader;
+    private final AnomalyDetector anomalyDetector;
+    private final ErrorLogSource errorLogSource;
+    private final IncidentAnalyzer incidentAnalyzer;
+
+    public AnalyzerScheduler(
+            SystemMetricsReader systemMetricsReader,
+            AnomalyDetector anomalyDetector,
+            ErrorLogSource errorLogSource,
+            IncidentAnalyzer incidentAnalyzer) {
+        this.systemMetricsReader = Objects.requireNonNull(systemMetricsReader, "systemMetricsReader");
+        this.anomalyDetector = Objects.requireNonNull(anomalyDetector, "anomalyDetector");
+        this.errorLogSource = Objects.requireNonNull(errorLogSource, "errorLogSource");
+        this.incidentAnalyzer = Objects.requireNonNull(incidentAnalyzer, "incidentAnalyzer");
+    }
+
+    @Scheduled(fixedDelay = 60_000)
+    public void runAnalysisCycle() {
+        String cycleId = UUID.randomUUID().toString().substring(0, 8);
+        MDC.put(MDC_CYCLE_ID, cycleId);
+        try {
+            log.debug("분석 사이클 시작");
+            executeCycle();
+            log.debug("분석 사이클 정상 종료");
+        } catch (RuntimeException e) {
+            log.error("분석 사이클 실패: cycleId={}", cycleId, e);
+            throw e;
+        } finally {
+            MDC.remove(MDC_CYCLE_ID);
+        }
+    }
+
+    private void executeCycle() {
+        log.info("[1/4] latency 조회 시작");
+        SystemMetrics metrics = systemMetricsReader.read();
+        log.info(
+                "[1/4] latency 조회 완료: latencySeconds={} (Prometheus p95 PromQL)",
+                metrics.latencySeconds());
+
+        log.info("[2/4] error rate 조회 완료: errorRate={}", metrics.errorRate());
+
+        log.info(
+                "[3/4] anomaly 판단 시작 (임계: latency>{}, errorRate>{})",
+                AnomalyDetector.LATENCY_THRESHOLD, AnomalyDetector.ERROR_RATE_THRESHOLD);
+        AnomalyDetectionResult result = anomalyDetector.evaluate(metrics);
+        log.info("[3/4] anomaly 판단 완료: anomaly={}, detail={}", result.anomaly(), result.summary());
+
+        if (!result.anomaly()) {
+            log.info("[4/4] 정상 — 로그 수집·AI 호출 생략");
+            return;
+        }
+
+        log.warn("[4/4] anomaly 발생 — 후속 처리 시작: {}", result.summary());
+
+        log.info("[4/4-a] 로그 수집 시작");
+        List<String> errors = safeCollectLogs();
+        log.info("[4/4-a] 로그 수집 완료: lineCount={}", errors.size());
+        if (log.isDebugEnabled()) {
+            for (int i = 0; i < errors.size(); i++) {
+                log.debug("[4/4-a] log[{}]={}", i, errors.get(i));
+            }
+        }
+
+        log.info("[4/4-b] IncidentAnalyzer 호출 시작");
+        String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
+        int responseLen = analysis != null ? analysis.length() : 0;
+        log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
+
+        if (analysis != null) {
+            log.info("[4/4-c] AI 분석 결과 출력:\n{}", analysis);
+        } else {
+            log.warn("[4/4-c] AI 분석 결과가 null입니다.");
+        }
+    }
+
+    private List<String> safeCollectLogs() {
+        try {
+            List<String> raw = errorLogSource.collectRecentErrors();
+            if (raw == null) {
+                log.warn("errorLogSource가 null 목록을 반환했습니다. 빈 목록으로 대체합니다.");
+                return List.of();
+            }
+            return List.copyOf(raw);
+        } catch (RuntimeException e) {
+            log.error("로그 수집 중 예외 — 빈 목록으로 진행", e);
+            return List.of();
+        }
+    }
+}
