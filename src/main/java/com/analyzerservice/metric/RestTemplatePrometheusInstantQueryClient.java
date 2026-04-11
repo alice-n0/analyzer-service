@@ -35,6 +35,10 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             log.warn("PromQL이 비어 있어 조회를 건너뜁니다.");
             return 0.0;
         }
+        promql = promql
+        .replace("\n", " ")
+        .replace("\r", " ")
+        .trim();
 
         String base = trimTrailingSlash(prometheusProperties.getUrl());
         if (base.isEmpty()) {
