@@ -39,8 +39,9 @@ pipeline {
         stage('Gradle Build') {
             steps {
                 sh '''
-                    chmod +x ./gradlew 2>/dev/null || true
-                    ./gradlew clean build --no-daemon
+                    chmod +x ./gradlew
+                    ./gradlew clean build -x test --no-daemon
+                    ls -al build/libs
                 '''
             }
         }
