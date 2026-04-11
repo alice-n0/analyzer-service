@@ -35,6 +35,7 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             log.warn("PromQL이 비어 있어 조회를 건너뜁니다.");
             return 0.0;
         }
+
         promql = promql
         .replace("\n", " ")
         .replace("\r", " ")
@@ -46,11 +47,14 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             return 0.0;
         }
 
-        URI uri = UriComponentsBuilder.fromUriString(base + "/api/v1/query")
-                .queryParam("query", promql)
-                .encode(StandardCharsets.UTF_8)
-                .build()
-                .toUri();
+        log.info("RAW promql = [{}]", promql);
+        
+        URI uri = UriComponentsBuilder
+            .fromUriString(base + "/api/v1/query")
+            .queryParam("query", promql)
+            .encode()   // 여기서만 인코딩
+            .build()
+            .toUri();
 
         try {
             PrometheusInstantQueryResponse body = restTemplate.getForObject(uri, PrometheusInstantQueryResponse.class);

@@ -18,8 +18,7 @@ prometheus:
         sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
       )
     error-rate: >
-      sum(rate(http_requests_total{status=~"5.."}[5m]))
-      / sum(rate(http_requests_total[5m]))
+      sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
 
 analyzer:
   thresholds:
