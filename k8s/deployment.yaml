@@ -29,6 +29,17 @@ spec:
               value: "http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
             - name: LOKI_URL
               value: "http://loki-read.logging.svc.cluster.local:3100"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: OPENAI_API_KEY
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MAIL_PASSWORD
+
           # spring-boot-starter-actuator 미사용: TCP 기준
           readinessProbe:
             tcpSocket:

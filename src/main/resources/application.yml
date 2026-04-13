@@ -28,6 +28,16 @@ analyzer:
 openai:
   api-key: ${OPENAI_API_KEY:}
 
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hyeonjin5012@gmail.com
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
 logging:
   level:
     com.analyzerservice: INFO

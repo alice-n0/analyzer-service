@@ -11,6 +11,8 @@ import com.analyzerservice.detector.AnomalyDetector;
 import com.analyzerservice.log.ErrorLogSource;
 import com.analyzerservice.metric.SystemMetrics;
 import com.analyzerservice.metric.SystemMetricsReader;
+import com.analyzerservice.notification.NotificationService;
+
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +32,15 @@ class AnalyzerSchedulerTest {
     @Mock
     private IncidentAnalyzer incidentAnalyzer;
 
+    @Mock
+    private NotificationService notificationService;
+
     private AnalyzerScheduler scheduler;
 
     @BeforeEach
     void setUp() {
         scheduler = new AnalyzerScheduler(
-                systemMetricsReader, new AnomalyDetector(), errorLogSource, incidentAnalyzer);
+                systemMetricsReader, new AnomalyDetector(), errorLogSource, incidentAnalyzer, notificationService);
     }
 
     @Test

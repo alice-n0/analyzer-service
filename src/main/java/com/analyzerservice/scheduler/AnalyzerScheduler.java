@@ -6,6 +6,8 @@ import com.analyzerservice.detector.AnomalyDetector;
 import com.analyzerservice.log.ErrorLogSource;
 import com.analyzerservice.metric.SystemMetrics;
 import com.analyzerservice.metric.SystemMetricsReader;
+import com.analyzerservice.notification.NotificationService;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,16 +31,20 @@ public class AnalyzerScheduler {
     private final AnomalyDetector anomalyDetector;
     private final ErrorLogSource errorLogSource;
     private final IncidentAnalyzer incidentAnalyzer;
+    private final NotificationService notificationService;
 
     public AnalyzerScheduler(
             SystemMetricsReader systemMetricsReader,
             AnomalyDetector anomalyDetector,
             ErrorLogSource errorLogSource,
-            IncidentAnalyzer incidentAnalyzer) {
-        this.systemMetricsReader = Objects.requireNonNull(systemMetricsReader, "systemMetricsReader");
-        this.anomalyDetector = Objects.requireNonNull(anomalyDetector, "anomalyDetector");
-        this.errorLogSource = Objects.requireNonNull(errorLogSource, "errorLogSource");
-        this.incidentAnalyzer = Objects.requireNonNull(incidentAnalyzer, "incidentAnalyzer");
+            IncidentAnalyzer incidentAnalyzer,
+            NotificationService notificationService) {
+
+        this.systemMetricsReader = systemMetricsReader;
+        this.anomalyDetector = anomalyDetector;
+        this.errorLogSource = errorLogSource;
+        this.incidentAnalyzer = incidentAnalyzer;
+        this.notificationService = notificationService;
     }
 
     @Scheduled(fixedDelay = 60_000)
@@ -121,8 +127,10 @@ public class AnalyzerScheduler {
 
         if (analysis != null) {
             log.info("[4/4-c] AI 분석 결과 출력:\n{}", analysis);
+               notificationService.send(analysis);
         } else {
             log.warn("[4/4-c] AI 분석 결과가 null입니다.");
+            notificationService.send("AI 분석 결과가 null입니다.");
         }
     }
 
