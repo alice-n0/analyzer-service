@@ -25,6 +25,9 @@ analyzer:
     p95-latency-ms: 500
     error-rate: 0.05
 
+openai:
+  api-key: ${OPENAI_API_KEY:}
+
 logging:
   level:
     com.analyzerservice: INFO

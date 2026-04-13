@@ -14,33 +14,52 @@ class AnalysisPromptBuilderTest {
 
     @Test
     void build_includesMetricsAndRequirements() {
-        String prompt = builder.build(new SystemMetrics(0.12, 0.03, 0.0, true), List.of("a", "b"));
-        assertThat(prompt).contains("현재 시스템에서 장애 발생");
-        assertThat(prompt).contains("- latency:");
-        assertThat(prompt).contains("- errorRate:");
-        assertThat(prompt).contains("a");
-        assertThat(prompt).contains("b");
-        assertThat(prompt).contains("1. 원인 추정");
+        String prompt = builder.build(new SystemMetrics(0.12, 0.03, 0.0, true, 0.0, 0.0, 0.0, 0.0), List.of("a", "b"));
+        assertThat(prompt).contains("metrics:");
+        assertThat(prompt).contains("* latency:");
+        assertThat(prompt).contains("* p99Latency:");
+        assertThat(prompt).contains("* errorRate:");
+        assertThat(prompt).contains("* error5xxRate:");
+        assertThat(prompt).contains("* error4xxRate:");
+        assertThat(prompt).contains("* rps:");
+        assertThat(prompt).contains("* dbSaturation:");
+        assertThat(prompt).contains("* a");
+        assertThat(prompt).contains("* b");
+        assertThat(prompt).contains("* 장애 원인");
+        assertThat(prompt).contains("* 영향 범위");
+        assertThat(prompt).contains("* 추정 원인 (DB / 코드 / 트래픽 / 외부 의존성)");
+        assertThat(prompt).contains("* 대응 방법");
     }
 
     @Test
     void build_nullLogsTreatedAsEmpty() {
-        String prompt = builder.build(new SystemMetrics(0.1, 0.02, 0.0, true), null);
+        String prompt = builder.build(new SystemMetrics(0.1, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0), null);
         assertThat(prompt).contains("(로그 없음)");
     }
 
     @Test
     void build_skipsNullAndBlankLines() {
         String prompt =
-                builder.build(new SystemMetrics(0.1, 0.02, 0.0, true), Arrays.asList(" ok ", null, "", "tail"));
-        assertThat(prompt).contains("ok");
-        assertThat(prompt).contains("tail");
+                builder.build(new SystemMetrics(0.1, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0), Arrays.asList(" ok ", null, "", "tail"));
+        assertThat(prompt).contains("* ok");
+        assertThat(prompt).contains("* tail");
         assertThat(prompt).doesNotContain("null");
     }
 
     @Test
+    void build_limitsLogLinesTo20() {
+        List<String> logs = java.util.stream.IntStream.rangeClosed(1, 25)
+                .mapToObj(i -> "line-" + i)
+                .toList();
+        String prompt = builder.build(new SystemMetrics(0.1, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0), logs);
+        assertThat(prompt).contains("* line-1");
+        assertThat(prompt).contains("* line-20");
+        assertThat(prompt).doesNotContain("* line-21");
+    }
+
+    @Test
     void build_nonFiniteMetricsShowsNA() {
-        String prompt = builder.build(new SystemMetrics(Double.NaN, 0.02, 0.0, true), List.of());
+        String prompt = builder.build(new SystemMetrics(Double.NaN, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0), List.of());
         assertThat(prompt).contains("N/A");
     }
 

@@ -73,9 +73,26 @@ public class AnalyzerScheduler {
 
         log.info("[2/4] error rate 조회 완료: errorRate={}", metrics.errorRate());
 
+        log.info("p99Latency={}", metrics.p99LatencySeconds());
+        log.info("dbSaturation={}", metrics.dbSaturation());
+        log.info("error5xxRate={}", metrics.error5xxRate());
+        log.info("error4xxRate={}", metrics.error4xxRate());
+
         log.info(
                 "[3/4] anomaly 판단 시작 (임계: latency>{}, errorRate>{})",
                 AnomalyDetector.LATENCY_THRESHOLD, AnomalyDetector.ERROR_RATE_THRESHOLD);
+        if (metrics.dbSaturation() > 0.8) {
+            log.warn("[CAUSE] DB 포화 가능성");
+        }
+
+        if (metrics.error5xxRate() > 0.05) {
+            log.warn("[CAUSE] 서버 내부 오류 증가");
+        }
+
+        if (metrics.error4xxRate() > 0.2) {
+            log.warn("[CAUSE] 클라이언트 요청 문제 가능성");
+        }
+
         AnomalyDetectionResult result = anomalyDetector.evaluate(metrics);
         log.info("[3/4] anomaly 판단 완료: anomaly={}, detail={}", result.anomaly(), result.summary());
 

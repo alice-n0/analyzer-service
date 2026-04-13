@@ -11,6 +11,11 @@
       "sourceType": "com.analyzerservice.config.LokiProperties"
     },
     {
+      "name": "openai",
+      "type": "com.analyzerservice.config.OpenAIProperties",
+      "sourceType": "com.analyzerservice.config.OpenAIProperties"
+    },
+    {
       "name": "prometheus",
       "type": "com.analyzerservice.config.PrometheusProperties",
       "sourceType": "com.analyzerservice.config.PrometheusProperties"
@@ -57,6 +62,11 @@
       "name": "loki.url",
       "type": "java.lang.String",
       "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "openai.api-key",
+      "type": "java.lang.String",
+      "sourceType": "com.analyzerservice.config.OpenAIProperties"
     },
     {
       "name": "prometheus.queries.error-rate",
