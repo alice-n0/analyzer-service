@@ -121,7 +121,8 @@ public class AnalyzerScheduler {
         }
 
         log.info("[4/4-b] IncidentAnalyzer 호출 시작");
-        String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
+        // String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
+        String analysis = "테스트용 분석 결과";
         int responseLen = analysis != null ? analysis.length() : 0;
         log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
 
@@ -130,7 +131,6 @@ public class AnalyzerScheduler {
                notificationService.send(analysis);
         } else {
             log.warn("[4/4-c] AI 분석 결과가 null입니다.");
-            notificationService.send("AI 분석 결과가 null입니다.");
         }
     }
 
