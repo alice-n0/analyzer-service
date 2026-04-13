@@ -15,11 +15,11 @@ prometheus:
     # 환경에 맞게 메트릭 이름·레이블을 수정하세요. PROMETHEUS_QUERIES_* 형태로는 중첩 바인딩이 번거로우므로 yaml 또는 ConfigMap 권장.
     p95-latency: >
       histogram_quantile(0.95,
-        sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+        sum(rate(http_server_requests_seconds_bucket[5m])) by (le)
       )
     error-rate: >
-      sum(rate(http_requests_total{status=~"5.."}[5m]))
-      / sum(rate(http_requests_total[5m]))
+      sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+      / sum(rate(http_server_requests_seconds_count[5m]))
 
 analyzer:
   thresholds:
