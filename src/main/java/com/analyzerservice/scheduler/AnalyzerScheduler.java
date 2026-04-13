@@ -60,6 +60,13 @@ public class AnalyzerScheduler {
     private void executeCycle() {
         log.info("[1/4] latency 조회 시작");
         SystemMetrics metrics = systemMetricsReader.read();
+        log.info("RPS={}", metrics.rps());
+
+        if (metrics.isNoData()) {
+            log.warn("[STATE] NO_DATA - 트래픽 없음 또는 Prometheus 데이터 없음");
+            return;
+        }
+
         log.info(
                 "[1/4] latency 조회 완료: latencySeconds={} (Prometheus p95 PromQL)",
                 metrics.latencySeconds());
@@ -73,10 +80,12 @@ public class AnalyzerScheduler {
         log.info("[3/4] anomaly 판단 완료: anomaly={}, detail={}", result.anomaly(), result.summary());
 
         if (!result.anomaly()) {
+            log.info("[STATE] NORMAL");
             log.info("[4/4] 정상 — 로그 수집·AI 호출 생략");
             return;
         }
 
+        log.warn("[STATE] ANOMALY");
         log.warn("[4/4] anomaly 발생 — 후속 처리 시작: {}", result.summary());
 
         log.info("[4/4-a] 로그 수집 시작");

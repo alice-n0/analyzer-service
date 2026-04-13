@@ -55,6 +55,9 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
 
         try {
             PrometheusInstantQueryResponse body = restTemplate.getForObject(uri, PrometheusInstantQueryResponse.class);
+            log.info("Prometheus Query 실행: uri={}, promql={}", uri, promql);
+            log.debug("Prometheus RAW response: {}", body);
+
             return parseScalarSample(uri, promql, body);
         } catch (RestClientException e) {
             log.error("Prometheus HTTP 조회 실패: uri={}", uri, e);
@@ -64,6 +67,7 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             return 0.0;
         }
     }
+    
 
     private static double parseScalarSample(URI uri, String promql, PrometheusInstantQueryResponse body) {
         if (body == null || !"success".equalsIgnoreCase(body.getStatus()) || body.getData() == null) {
@@ -73,7 +77,7 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
 
         List<PrometheusInstantQueryResponse.Result> results = body.getData().getResult();
         if (results == null || results.isEmpty()) {
-            log.debug("Prometheus 쿼리 결과 없음: promqlSnippet={}", abbreviate(promql));
+            log.warn("Prometheus 쿼리 결과 없음: promqlSnippet={}", abbreviate(promql));
             return 0.0;
         }
 

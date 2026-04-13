@@ -34,6 +34,26 @@
       "sourceType": "com.analyzerservice.config.AnalyzerThresholdProperties"
     },
     {
+      "name": "loki.error-log-query",
+      "type": "java.lang.String",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "loki.lookback-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "loki.max-lines",
+      "type": "java.lang.Integer",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
+      "name": "loki.query-range-path",
+      "type": "java.lang.String",
+      "sourceType": "com.analyzerservice.config.LokiProperties"
+    },
+    {
       "name": "loki.url",
       "type": "java.lang.String",
       "sourceType": "com.analyzerservice.config.LokiProperties"

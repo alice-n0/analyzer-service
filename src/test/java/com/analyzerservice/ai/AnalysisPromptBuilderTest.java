@@ -14,7 +14,7 @@ class AnalysisPromptBuilderTest {
 
     @Test
     void build_includesMetricsAndRequirements() {
-        String prompt = builder.build(new SystemMetrics(0.12, 0.03), List.of("a", "b"));
+        String prompt = builder.build(new SystemMetrics(0.12, 0.03, 0.0, true), List.of("a", "b"));
         assertThat(prompt).contains("현재 시스템에서 장애 발생");
         assertThat(prompt).contains("- latency:");
         assertThat(prompt).contains("- errorRate:");
@@ -25,14 +25,14 @@ class AnalysisPromptBuilderTest {
 
     @Test
     void build_nullLogsTreatedAsEmpty() {
-        String prompt = builder.build(new SystemMetrics(0.1, 0.02), null);
+        String prompt = builder.build(new SystemMetrics(0.1, 0.02, 0.0, true), null);
         assertThat(prompt).contains("(로그 없음)");
     }
 
     @Test
     void build_skipsNullAndBlankLines() {
         String prompt =
-                builder.build(new SystemMetrics(0.1, 0.02), Arrays.asList(" ok ", null, "", "tail"));
+                builder.build(new SystemMetrics(0.1, 0.02, 0.0, true), Arrays.asList(" ok ", null, "", "tail"));
         assertThat(prompt).contains("ok");
         assertThat(prompt).contains("tail");
         assertThat(prompt).doesNotContain("null");
@@ -40,7 +40,7 @@ class AnalysisPromptBuilderTest {
 
     @Test
     void build_nonFiniteMetricsShowsNA() {
-        String prompt = builder.build(new SystemMetrics(Double.NaN, 0.02), List.of());
+        String prompt = builder.build(new SystemMetrics(Double.NaN, 0.02, 0.0, true), List.of());
         assertThat(prompt).contains("N/A");
     }
 

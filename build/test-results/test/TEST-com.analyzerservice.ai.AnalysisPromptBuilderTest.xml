@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.analyzerservice.ai.AnalysisPromptBuilderTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-04-11T02:50:11" hostname="hjui-MacBookPro.local" time="0.032">
+<testsuite name="com.analyzerservice.ai.AnalysisPromptBuilderTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-04-13T02:48:54" hostname="hjui-MacBookPro.local" time="0.041">
   <properties/>
-  <testcase name="build_nonFiniteMetricsShowsNA()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.029"/>
-  <testcase name="build_rejectsNullMetrics()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.001"/>
-  <testcase name="build_includesMetricsAndRequirements()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.0"/>
+  <testcase name="build_nonFiniteMetricsShowsNA()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.034"/>
+  <testcase name="build_rejectsNullMetrics()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.002"/>
+  <testcase name="build_includesMetricsAndRequirements()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.001"/>
   <testcase name="build_skipsNullAndBlankLines()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.001"/>
-  <testcase name="build_nullLogsTreatedAsEmpty()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.0"/>
+  <testcase name="build_nullLogsTreatedAsEmpty()" classname="com.analyzerservice.ai.AnalysisPromptBuilderTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.analyzerservice.detector.AnomalyDetectorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-04-11T02:50:11" hostname="hjui-MacBookPro.local" time="0.003">
+<testsuite name="com.analyzerservice.detector.AnomalyDetectorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-04-13T02:48:54" hostname="hjui-MacBookPro.local" time="0.007">
   <properties/>
-  <testcase name="isAnomaly_trueWhenLatencyHigh()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.0"/>
-  <testcase name="describeReason_notesNonFiniteWhenNoThresholdBreach()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.0"/>
+  <testcase name="isAnomaly_trueWhenLatencyHigh()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.001"/>
+  <testcase name="describeReason_notesNonFiniteWhenNoThresholdBreach()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.002"/>
   <testcase name="evaluate_matchesThresholdFlags()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.001"/>
   <testcase name="isAnomaly_falseForNonFiniteValues()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.001"/>
-  <testcase name="isAnomaly_trueWhenErrorRateHigh()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.0"/>
+  <testcase name="isAnomaly_trueWhenErrorRateHigh()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.001"/>
   <testcase name="isAnomaly_falseWhenBelowThresholds()" classname="com.analyzerservice.detector.AnomalyDetectorTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

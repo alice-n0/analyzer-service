@@ -40,7 +40,7 @@ class AnalyzerSchedulerTest {
 
     @Test
     void skipsLogsAndAiWhenHealthy() {
-        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(0.1, 0.01));
+        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(0.1, 0.01, 0.0, true));
 
         scheduler.runAnalysisCycle();
 
@@ -50,7 +50,7 @@ class AnalyzerSchedulerTest {
 
     @Test
     void collectsLogsAndCallsAnalyzerWhenAnomaly() {
-        SystemMetrics hot = new SystemMetrics(1.0, 0.01);
+        SystemMetrics hot = new SystemMetrics(1.0, 0.01, 0.0, true);
         when(systemMetricsReader.read()).thenReturn(hot);
         when(errorLogSource.collectRecentErrors()).thenReturn(List.of("err"));
         when(incidentAnalyzer.analyzeIncident(eq(hot), eq(List.of("err"))))
@@ -63,7 +63,7 @@ class AnalyzerSchedulerTest {
 
     @Test
     void nullLogList_replacedWithEmptyList() {
-        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(1.0, 0.01));
+        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(1.0, 0.01, 0.0, true));
         when(errorLogSource.collectRecentErrors()).thenReturn(null);
         when(incidentAnalyzer.analyzeIncident(any(), eq(List.of()))).thenReturn("ok");
 
