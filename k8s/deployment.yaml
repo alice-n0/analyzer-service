@@ -39,6 +39,11 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: MAIL_PASSWORD
+            - name: GRAFANA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: GRAFANA_API_KEY
 
           # spring-boot-starter-actuator 미사용: TCP 기준
           readinessProbe:

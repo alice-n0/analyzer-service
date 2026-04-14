@@ -1,6 +1,7 @@
 package com.analyzerservice.scheduler;
 
 import com.analyzerservice.ai.IncidentAnalyzer;
+import com.analyzerservice.config.GrafanaAnnotationClient;
 import com.analyzerservice.detector.AnomalyDetectionResult;
 import com.analyzerservice.detector.AnomalyDetector;
 import com.analyzerservice.log.ErrorLogSource;
@@ -9,7 +10,6 @@ import com.analyzerservice.metric.SystemMetricsReader;
 import com.analyzerservice.notification.NotificationService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,19 +32,22 @@ public class AnalyzerScheduler {
     private final ErrorLogSource errorLogSource;
     private final IncidentAnalyzer incidentAnalyzer;
     private final NotificationService notificationService;
+    private final GrafanaAnnotationClient annotationClient;
 
     public AnalyzerScheduler(
             SystemMetricsReader systemMetricsReader,
             AnomalyDetector anomalyDetector,
             ErrorLogSource errorLogSource,
             IncidentAnalyzer incidentAnalyzer,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            GrafanaAnnotationClient annotationClient) {
 
         this.systemMetricsReader = systemMetricsReader;
         this.anomalyDetector = anomalyDetector;
         this.errorLogSource = errorLogSource;
         this.incidentAnalyzer = incidentAnalyzer;
         this.notificationService = notificationService;
+        this.annotationClient = annotationClient;
     }
 
     @Scheduled(fixedDelay = 60_000)
@@ -124,13 +127,39 @@ public class AnalyzerScheduler {
         String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
         int responseLen = analysis != null ? analysis.length() : 0;
         log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
+        String summary = extractSummary(analysis);
+        log.info("[4/4-d] Grafana annotation 호출: summary={}", summary);
+        annotationClient.createAnnotation(summary);
+        notificationService.send(summary);
 
         if (analysis != null) {
             log.info("[4/4-c] AI 분석 결과 출력:\n{}", analysis);
-               notificationService.send(analysis);
         } else {
             log.warn("[4/4-c] AI 분석 결과가 null입니다.");
         }
+    }
+
+    private String extractSummary(String analysis) {
+        if (analysis == null) {
+            return "[AI 분석 결과 없음]";
+        }
+
+        String trimmed = analysis.trim();
+        if (trimmed.isEmpty()) {
+            return "[AI 분석 결과 없음]";
+        }
+
+        String[] lines = trimmed.split("\\R");
+        String firstLine = lines[0].trim();
+        String secondLine = lines.length > 1 ? lines[1].trim() : "";
+        String combined = secondLine.isEmpty() ? firstLine : firstLine + " " + secondLine;
+        if (combined.isEmpty()) {
+            combined = "[AI 분석 결과 없음]";
+        }
+        if (combined.length() > 100) {
+            return combined.substring(0, 100);
+        }
+        return combined;
     }
 
     private List<String> safeCollectLogs() {

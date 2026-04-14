@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.analyzerservice.ai.IncidentAnalyzer;
+import com.analyzerservice.config.GrafanaAnnotationClient;
 import com.analyzerservice.detector.AnomalyDetector;
 import com.analyzerservice.log.ErrorLogSource;
 import com.analyzerservice.metric.SystemMetrics;
@@ -35,12 +36,15 @@ class AnalyzerSchedulerTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private GrafanaAnnotationClient annotationClient;
+
     private AnalyzerScheduler scheduler;
 
     @BeforeEach
     void setUp() {
         scheduler = new AnalyzerScheduler(
-                systemMetricsReader, new AnomalyDetector(), errorLogSource, incidentAnalyzer, notificationService);
+                systemMetricsReader, new AnomalyDetector(), errorLogSource, incidentAnalyzer, notificationService, annotationClient);
     }
 
     @Test

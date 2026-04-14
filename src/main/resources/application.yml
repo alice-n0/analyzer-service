@@ -20,6 +20,10 @@ prometheus:
     error-rate: >
       sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
 
+grafana:
+  url: ${GRAFANA_URL:http://monitoring-grafana.monitoring.svc.cluster.local}
+  apiKey: ${GRAFANA_API_KEY:GRAFANA_API_KEY}
+
 analyzer:
   thresholds:
     p95-latency-ms: 500
