@@ -19,7 +19,7 @@ public class GrafanaAnnotationClient {
     public GrafanaAnnotationClient(
             RestTemplate restTemplate,
             @Value("${grafana.url}") String grafanaUrl,
-            @Value("${grafana.api-token}") String grafanaApiToken) {
+            @Value("${grafana.apiKey}") String grafanaApiToken) {
         this.restTemplate = restTemplate;
         this.grafanaUrl = grafanaUrl;
         this.grafanaApiToken = grafanaApiToken;
