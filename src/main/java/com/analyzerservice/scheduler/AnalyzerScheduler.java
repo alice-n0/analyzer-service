@@ -121,8 +121,7 @@ public class AnalyzerScheduler {
         }
 
         log.info("[4/4-b] IncidentAnalyzer 호출 시작");
-        // String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
-        String analysis = "테스트용 분석 결과";
+        String analysis = incidentAnalyzer.analyzeIncident(metrics, errors);
         int responseLen = analysis != null ? analysis.length() : 0;
         log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
 
