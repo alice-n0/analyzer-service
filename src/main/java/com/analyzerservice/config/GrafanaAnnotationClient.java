@@ -33,7 +33,8 @@ public class GrafanaAnnotationClient {
         Map<String, Object> body = Map.of(
                 "text", summary,
                 "tags", List.of("AI", "ANOMALY"),
-                "time", System.currentTimeMillis());
+                "time", System.currentTimeMillis(),   
+                "dashboardUID", "cfhjzkqjcj9q8e");
 
         restTemplate.postForEntity(
                 grafanaUrl + "/api/annotations",
