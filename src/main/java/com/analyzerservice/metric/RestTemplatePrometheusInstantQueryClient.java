@@ -48,10 +48,10 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
         String encoded = URLEncoder.encode(promql, StandardCharsets.UTF_8);
 
         URI uri = UriComponentsBuilder
-            .fromUriString(base + "/api/v1/query")
-            .queryParam("query", encoded)
-            .build(true)   // 이미 인코딩된 값
-            .toUri();
+                .fromUriString(base + "/api/v1/query")
+                .queryParam("query", encoded)
+                .build(true) // 이미 인코딩된 값
+                .toUri();
 
         try {
             PrometheusInstantQueryResponse body = restTemplate.getForObject(uri, PrometheusInstantQueryResponse.class);
@@ -67,7 +67,40 @@ public class RestTemplatePrometheusInstantQueryClient implements PrometheusInsta
             return 0.0;
         }
     }
-    
+
+    @Override
+    public List<String> queryLabelValues(String metric, String label) {
+        String base = trimTrailingSlash(prometheusProperties.getUrl());
+
+        if (base.isEmpty()) {
+            log.warn("prometheus.url이 설정되지 않았습니다.");
+            return List.of();
+        }
+
+        URI uri = UriComponentsBuilder
+                .fromUriString(base + "/api/v1/label/{label}/values")
+                .buildAndExpand(label)
+                .toUri();
+
+        try {
+            PrometheusLabelValuesResponse response = restTemplate.getForObject(uri,
+                    PrometheusLabelValuesResponse.class);
+
+            if (response == null || response.getData() == null) {
+                log.warn("label values 응답이 비어있습니다: label={}", label);
+                return List.of();
+            }
+
+            return response.getData().stream()
+                    .filter(v -> v != null && !v.isBlank())
+                    .filter(v -> v.endsWith("-service"))
+                    .toList();
+
+        } catch (RestClientException e) {
+            log.error("label values 조회 실패: uri={}", uri, e);
+            return List.of();
+        }
+    }
 
     private static double parseScalarSample(URI uri, String promql, PrometheusInstantQueryResponse body) {
         if (body == null || !"success".equalsIgnoreCase(body.getStatus()) || body.getData() == null) {

@@ -4,6 +4,7 @@ package com.analyzerservice.metric;
  * 한 사이클에서 조회한 시스템 메트릭
  */
 public record SystemMetrics(
+        String serviceName,
         double latencySeconds,
         double errorRate,
         double rps,
@@ -14,6 +15,10 @@ public record SystemMetrics(
         double error4xxRate) {
 
     public SystemMetrics {
+        if (serviceName == null || serviceName.isBlank()) {
+            throw new IllegalArgumentException("serviceName must not be null or blank");
+        }
+
         latencySeconds = Double.isFinite(latencySeconds) ? latencySeconds : Double.NaN;
         errorRate = Double.isFinite(errorRate) ? errorRate : Double.NaN;
         rps = Double.isFinite(rps) ? rps : Double.NaN;

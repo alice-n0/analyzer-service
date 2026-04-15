@@ -1,79 +1,112 @@
 package com.analyzerservice.metric;
 
 import com.analyzerservice.config.PrometheusProperties;
+
+import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Prometheus에서 RPS를 먼저 조회하고, 트래픽이 있을 때만 p95 지연·에러율을 조회해 {@link SystemMetrics}를 만듭니다.
- */
 @Component
 public class PrometheusSystemMetricsReader implements SystemMetricsReader {
 
     private static final Logger log = LoggerFactory.getLogger(PrometheusSystemMetricsReader.class);
 
-    private static final String RPS_PROMQL = "sum(rate(http_server_requests_seconds_count[1m]))";
+    // service 라벨 적용
+    private static final String RPS_PROMQL =
+            "sum(rate(http_server_requests_seconds_count{service=\"$service\"}[1m]))";
 
     private static final String LATENCY_PROMQL =
-            "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[1m])) by (le))";
+            "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{service=\"$service\"}[1m])) by (le))";
 
     private static final String LATENCY_P99_PROMQL =
-            "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[1m])) by (le))";
+            "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{service=\"$service\"}[1m])) by (le))";
 
     private static final String ERROR_RATE_PROMQL =
-            "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m]))"
-                    + " / sum(rate(http_server_requests_seconds_count[1m]))";
+            "sum(rate(http_server_requests_seconds_count{service=\"$service\", status=~\"5..\"}[1m]))"
+                    + " / sum(rate(http_server_requests_seconds_count{service=\"$service\"}[1m]))";
 
     private static final String ERROR_4XX_RATE_PROMQL =
-            "sum(rate(http_server_requests_seconds_count{status=~\"4..\"}[1m]))"
-                    + " / sum(rate(http_server_requests_seconds_count[1m]))";
+            "sum(rate(http_server_requests_seconds_count{service=\"$service\", status=~\"4..\"}[1m]))"
+                    + " / sum(rate(http_server_requests_seconds_count{service=\"$service\"}[1m]))";
 
     private static final String DB_SATURATION_PROMQL =
-            "hikaricp_connections_active / hikaricp_connections_max";
+            "hikaricp_connections_active{service=\"$service\"} / hikaricp_connections_max{service=\"$service\"}";
 
     private final PrometheusInstantQueryClient queryClient;
     private final PrometheusProperties prometheusProperties;
 
     public PrometheusSystemMetricsReader(
-            PrometheusInstantQueryClient queryClient, PrometheusProperties prometheusProperties) {
+            PrometheusInstantQueryClient queryClient,
+            PrometheusProperties prometheusProperties) {
         this.queryClient = Objects.requireNonNull(queryClient, "queryClient");
         this.prometheusProperties = Objects.requireNonNull(prometheusProperties, "prometheusProperties");
     }
-
     @Override
-    public SystemMetrics read() {
+    public List<String> getAvailableServices() {
+        return queryClient.queryLabelValues(
+            "http_server_requests_seconds_count",
+            "service"
+        );
+    }
+    
+    @Override
+    public SystemMetrics read(String serviceName) {
         PrometheusProperties.Queries queries = prometheusProperties.getQueries();
+
         if (queries == null) {
-            log.warn("prometheus.queries가 null입니다. (0,0) 반환");
-            return new SystemMetrics(0.0, 0.0, 0.0, false, 0.0, 0.0, 0.0, 0.0);
+            log.warn("[{}] prometheus.queries가 null", serviceName);
+            return empty(serviceName);
         }
 
-        double rps = queryClient.queryInstantScalar(RPS_PROMQL);
+        double rps = query(RPS_PROMQL, serviceName);
+
         if (rps == 0.0) {
-            log.debug("RPS가 0이어서 latency·errorRate 조회를 생략합니다.");
-            return new SystemMetrics(0.0, 0.0, 0.0, false, 0.0, 0.0, 0.0, 0.0);
+            log.debug("[{}] RPS=0 → 조회 생략", serviceName);
+            return empty(serviceName);
         }
 
-        double latencySeconds = queryClient.queryInstantScalar(LATENCY_PROMQL);
-        double p99LatencySeconds = queryClient.queryInstantScalar(LATENCY_P99_PROMQL);
-        double errorRate = queryClient.queryInstantScalar(ERROR_RATE_PROMQL);
-        double error4xxRate = queryClient.queryInstantScalar(ERROR_4XX_RATE_PROMQL);
-        double dbSaturation = queryClient.queryInstantScalar(DB_SATURATION_PROMQL);
+        double latencySeconds = query(LATENCY_PROMQL, serviceName);
+        double p99LatencySeconds = query(LATENCY_P99_PROMQL, serviceName);
+        double errorRate = query(ERROR_RATE_PROMQL, serviceName);
+        double error4xxRate = query(ERROR_4XX_RATE_PROMQL, serviceName);
+        double dbSaturation = query(DB_SATURATION_PROMQL, serviceName);
 
         log.debug(
-                "SystemMetrics 조회 완료: latencySeconds={}, p99LatencySeconds={}, errorRate={},"
-                        + " error5xxRate={}, error4xxRate={}, rps={}, dbSaturation={}, hasData={}",
+                "[{}] latency={}, p99={}, errorRate={}, error4xx={}, rps={}, dbSat={}",
+                serviceName,
                 latencySeconds,
                 p99LatencySeconds,
                 errorRate,
-                errorRate,
                 error4xxRate,
                 rps,
-                dbSaturation,
-                true);
+                dbSaturation
+        );
+
         return new SystemMetrics(
-                latencySeconds, errorRate, rps, true, p99LatencySeconds, dbSaturation, errorRate, error4xxRate);
+                serviceName,
+                latencySeconds,
+                errorRate,
+                rps,
+                true,
+                p99LatencySeconds,
+                dbSaturation,
+                errorRate,      // 5xx rate
+                error4xxRate
+        );
+    }
+
+    // =========================
+    // helper
+    // =========================
+
+    private double query(String promql, String serviceName) {
+        String resolved = promql.replace("$service", serviceName);
+        return queryClient.queryInstantScalar(resolved);
+    }
+
+    private SystemMetrics empty(String serviceName) {
+        return new SystemMetrics(serviceName, 0, 0, 0, false, 0, 0, 0, 0);
     }
 }

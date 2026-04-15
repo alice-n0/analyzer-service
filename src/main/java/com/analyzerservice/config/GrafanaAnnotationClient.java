@@ -25,15 +25,14 @@ public class GrafanaAnnotationClient {
         this.grafanaApiToken = grafanaApiToken;
     }
 
-    public void createAnnotation(String summary) {
+    public void createAnnotation(String serviceName, String summary) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(grafanaApiToken);
-
         Map<String, Object> body = Map.of(
                 "text", summary,
-                "tags", List.of("AI", "ANOMALY"),
-                "time", System.currentTimeMillis(),   
+                "tags", List.of("AI", "ANOMALY", serviceName), // 핵심
+                "time", System.currentTimeMillis(),
                 "dashboardUID", "cfhjzkqjcj9q8e");
 
         restTemplate.postForEntity(

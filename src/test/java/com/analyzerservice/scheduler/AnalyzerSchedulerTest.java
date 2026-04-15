@@ -49,7 +49,7 @@ class AnalyzerSchedulerTest {
 
     @Test
     void skipsLogsAndAiWhenHealthy() {
-        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(0.1, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0));
+        when(systemMetricsReader.read("default-service")).thenReturn(new SystemMetrics("default-service",0.1, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0));
 
         scheduler.runAnalysisCycle();
 
@@ -59,8 +59,8 @@ class AnalyzerSchedulerTest {
 
     @Test
     void collectsLogsAndCallsAnalyzerWhenAnomaly() {
-        SystemMetrics hot = new SystemMetrics(1.0, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0);
-        when(systemMetricsReader.read()).thenReturn(hot);
+        SystemMetrics hot = new SystemMetrics("default-service",1.0, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0);
+        when(systemMetricsReader.read("default-service")).thenReturn(hot);
         when(errorLogSource.collectRecentErrors()).thenReturn(List.of("err"));
         when(incidentAnalyzer.analyzeIncident(eq(hot), eq(List.of("err"))))
                 .thenReturn("mock");
@@ -72,7 +72,7 @@ class AnalyzerSchedulerTest {
 
     @Test
     void nullLogList_replacedWithEmptyList() {
-        when(systemMetricsReader.read()).thenReturn(new SystemMetrics(1.0, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0));
+        when(systemMetricsReader.read("default-service")).thenReturn(new SystemMetrics("default-service",1.0, 0.01, 0.0, true, 0.0, 0.0, 0.0, 0.0));
         when(errorLogSource.collectRecentErrors()).thenReturn(null);
         when(incidentAnalyzer.analyzeIncident(any(), eq(List.of()))).thenReturn("ok");
 

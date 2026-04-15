@@ -32,7 +32,7 @@ class AnomalyDetectorTest {
 
     @Test
     void evaluate_matchesThresholdFlags() {
-        AnomalyDetectionResult r = detector.evaluate(new SystemMetrics(0.6, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0));
+        AnomalyDetectionResult r = detector.evaluate(new SystemMetrics("default-service",0.6, 0.02, 0.0, true, 0.0, 0.0, 0.0, 0.0));
         assertThat(r.anomaly()).isTrue();
         assertThat(r.latencyExceeded()).isTrue();
         assertThat(r.errorRateExceeded()).isFalse();

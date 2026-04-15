@@ -54,9 +54,23 @@ public class AnalyzerScheduler {
     public void runAnalysisCycle() {
         String cycleId = UUID.randomUUID().toString().substring(0, 8);
         MDC.put(MDC_CYCLE_ID, cycleId);
+
         try {
             log.debug("분석 사이클 시작");
-            executeCycle();
+
+            List<String> services = getActiveServices();
+
+            for (String service : services) {
+                try {
+                    log.info("발견된 서비스 : {}", service);
+
+                    executeCycle(service);
+                
+                } catch (Exception e) {
+                    log.error("[SERVICE={}] 개별 서비스 처리 실패", service, e);
+                }
+            }
+
             log.debug("분석 사이클 정상 종료");
         } catch (RuntimeException e) {
             log.error("분석 사이클 실패: cycleId={}", cycleId, e);
@@ -65,22 +79,22 @@ public class AnalyzerScheduler {
             MDC.remove(MDC_CYCLE_ID);
         }
     }
+    private List<String> getActiveServices() {
+        return systemMetricsReader.getAvailableServices();
+    }
 
-    private void executeCycle() {
-        log.info("[1/4] latency 조회 시작");
-        SystemMetrics metrics = systemMetricsReader.read();
-        log.info("RPS={}", metrics.rps());
+    private void executeCycle(String serviceName) {
+        log.info("[SERVICE={}] [1/4] latency 조회 시작", serviceName);
+        SystemMetrics metrics = systemMetricsReader.read(serviceName);
+        log.info("[SERVICE={}] RPS={}", serviceName, metrics.rps());
 
         if (metrics.isNoData()) {
             log.warn("[STATE] NO_DATA - 트래픽 없음 또는 Prometheus 데이터 없음");
             return;
         }
 
-        log.info(
-                "[1/4] latency 조회 완료: latencySeconds={} (Prometheus p95 PromQL)",
-                metrics.latencySeconds());
-
-        log.info("[2/4] error rate 조회 완료: errorRate={}", metrics.errorRate());
+        log.info("[SERVICE={}] latency={}", serviceName, metrics.latencySeconds());
+        log.info("[SERVICE={}] errorRate={}", serviceName, metrics.errorRate());
 
         log.info("p99Latency={}", metrics.p99LatencySeconds());
         log.info("dbSaturation={}", metrics.dbSaturation());
@@ -129,7 +143,7 @@ public class AnalyzerScheduler {
         log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
         String summary = extractSummary(analysis);
         log.info("[4/4-d] Grafana annotation 호출: summary={}", summary);
-        annotationClient.createAnnotation(summary);
+        annotationClient.createAnnotation(serviceName, summary);
         notificationService.send(summary);
 
         if (analysis != null) {
