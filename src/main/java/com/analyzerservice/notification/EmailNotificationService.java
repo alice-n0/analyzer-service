@@ -12,7 +12,7 @@ public class EmailNotificationService implements NotificationService {
     }
 
     @Override
-    public void send(String message) {
-        emailSender.send(message);
+    public void send(String serviceName, String severity, String analysis) {
+        emailSender.send(serviceName, severity, analysis);
     }
 }

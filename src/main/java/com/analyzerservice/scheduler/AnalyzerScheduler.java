@@ -63,9 +63,8 @@ public class AnalyzerScheduler {
             for (String service : services) {
                 try {
                     log.info("발견된 서비스 : {}", service);
-
                     executeCycle(service);
-                
+
                 } catch (Exception e) {
                     log.error("[SERVICE={}] 개별 서비스 처리 실패", service, e);
                 }
@@ -79,6 +78,7 @@ public class AnalyzerScheduler {
             MDC.remove(MDC_CYCLE_ID);
         }
     }
+
     private List<String> getActiveServices() {
         return systemMetricsReader.getAvailableServices();
     }
@@ -143,8 +143,16 @@ public class AnalyzerScheduler {
         log.info("[4/4-b] IncidentAnalyzer 호출 완료: responseLength={}", responseLen);
         String summary = extractSummary(analysis);
         log.info("[4/4-d] Grafana annotation 호출: summary={}", summary);
-        annotationClient.createAnnotation(serviceName, summary);
-        notificationService.send(summary);
+        String severity = determineSeverity(metrics);
+
+        annotationClient.createAnnotation(
+                metrics.serviceName(),
+                summary,
+                severity);
+        notificationService.send(
+                metrics.serviceName(),
+                severity,
+                analysis);
 
         if (analysis != null) {
             log.info("[4/4-c] AI 분석 결과 출력:\n{}", analysis);
@@ -153,27 +161,46 @@ public class AnalyzerScheduler {
         }
     }
 
+    private String determineSeverity(SystemMetrics metrics) {
+
+        if (metrics.error5xxRate() > 0.05 || metrics.dbSaturation() > 0.8) {
+            return "HIGH";
+        }
+
+        if (metrics.latencySeconds() > AnomalyDetector.LATENCY_THRESHOLD
+                || metrics.errorRate() > AnomalyDetector.ERROR_RATE_THRESHOLD) {
+            return "MEDIUM";
+        }
+
+        return "LOW";
+    }
+
     private String extractSummary(String analysis) {
-        if (analysis == null) {
+        if (analysis == null || analysis.isBlank()) {
             return "[AI 분석 결과 없음]";
         }
 
-        String trimmed = analysis.trim();
-        if (trimmed.isEmpty()) {
-            return "[AI 분석 결과 없음]";
+        String[] lines = analysis.split("\\R");
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("요약:")) {
+                String summary = trimmed.replaceFirst("요약:\\s*", "");
+                return limit(summary);
+            }
         }
 
-        String[] lines = trimmed.split("\\R");
+        // fallback (요약 못 찾으면 첫 줄 사용)
         String firstLine = lines[0].trim();
-        String secondLine = lines.length > 1 ? lines[1].trim() : "";
-        String combined = secondLine.isEmpty() ? firstLine : firstLine + " " + secondLine;
-        if (combined.isEmpty()) {
-            combined = "[AI 분석 결과 없음]";
+        return limit(firstLine.isEmpty() ? "[AI 분석 결과 없음]" : firstLine);
+    }
+
+    private String limit(String text) {
+        if (text.length() > 100) {
+            return text.substring(0, 100);
         }
-        if (combined.length() > 100) {
-            return combined.substring(0, 100);
-        }
-        return combined;
+        return text;
     }
 
     private List<String> safeCollectLogs() {

@@ -25,13 +25,13 @@ public class GrafanaAnnotationClient {
         this.grafanaApiToken = grafanaApiToken;
     }
 
-    public void createAnnotation(String serviceName, String summary) {
+    public void createAnnotation(String serviceName, String summary, String severity) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(grafanaApiToken);
         Map<String, Object> body = Map.of(
                 "text", summary,
-                "tags", List.of("AI", "ANOMALY", serviceName), // 핵심
+                "tags", List.of("AI", "ANOMALY", serviceName, "severity:" + severity.toLowerCase()),
                 "time", System.currentTimeMillis(),
                 "dashboardUID", "cfhjzkqjcj9q8e");
 

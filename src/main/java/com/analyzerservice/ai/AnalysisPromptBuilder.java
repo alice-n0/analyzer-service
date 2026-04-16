@@ -18,23 +18,35 @@ public class AnalysisPromptBuilder {
         List<String> lines = sanitizeLogLines(logs);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("metrics:\n\n");
-        sb.append("* latency: ").append(formatMetric(metrics.latencySeconds())).append('\n');
-        sb.append("* p99Latency: ").append(formatMetric(metrics.p99LatencySeconds())).append('\n');
-        sb.append("* errorRate: ").append(formatMetric(metrics.errorRate())).append('\n');
-        sb.append("* error5xxRate: ").append(formatMetric(metrics.error5xxRate())).append('\n');
-        sb.append("* error4xxRate: ").append(formatMetric(metrics.error4xxRate())).append('\n');
-        sb.append("* rps: ").append(formatMetric(metrics.rps())).append('\n');
-        sb.append("* dbSaturation: ").append(formatMetric(metrics.dbSaturation())).append("\n\n");
+        sb.append("다음은 서비스 장애 데이터다.\n");
+
+        sb.append("service: ").append(metrics.serviceName()).append('\n');
+
+        sb.append("metrics:\n");
+        sb.append("- latency: ").append(formatMetric(metrics.latencySeconds())).append('\n');
+        sb.append("- p99: ").append(formatMetric(metrics.p99LatencySeconds())).append('\n');
+        sb.append("- errorRate: ").append(formatMetric(metrics.errorRate())).append('\n');
+        sb.append("- 5xx: ").append(formatMetric(metrics.error5xxRate())).append('\n');
+        sb.append("- 4xx: ").append(formatMetric(metrics.error4xxRate())).append('\n');
+        sb.append("- rps: ").append(formatMetric(metrics.rps())).append('\n');
+        sb.append("- db: ").append(formatMetric(metrics.dbSaturation())).append('\n');
+
         sb.append("logs:\n");
         if (lines.isEmpty()) {
-            sb.append("(로그 없음)\n");
+            sb.append("- 없음\n");
         } else {
             for (String line : lines) {
-                sb.append("* ").append(line).append('\n');
+                sb.append("- ").append(line).append('\n');
             }
         }
-        sb.append("\n이 데이터를 기반으로 원인, 영향, 유형(DB/코드/트래픽/외부), 대응을 3줄 이내로 요약해줘.");
+
+        sb.append("\n");
+
+        sb.append("다음 형식으로만 한국어로 답변:\n");
+        sb.append("요약: \n");
+        sb.append("영향: \n");
+        sb.append("원인: \n");
+        sb.append("대응: \n");
 
         return sb.toString();
     }
@@ -53,7 +65,7 @@ public class AnalysisPromptBuilder {
                 out.add(t);
             }
         }
-        int maxLines = 5;
+        int maxLines = 7;
         if (out.size() <= maxLines) {
             return List.copyOf(out);
         }

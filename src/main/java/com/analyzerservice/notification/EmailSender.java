@@ -17,12 +17,28 @@ public class EmailSender {
         this.mailSender = mailSender;
     }
 
-    public void send(String message) {
+    public void send(String serviceName, String severity, String analysis) {
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(to);
-        mail.setSubject("[ALERT] 장애 감지");
-        mail.setText(message);
+    
+        String subject = String.format(
+                "[ALERT][%s][%s] %s",
+                serviceName,
+                severity
+        );
+    
+        mail.setSubject(subject);
 
+    
+        String body = String.format(
+            "[요약]\n%s\n\n%s",
+            analysis
+        );
+    
+        mail.setText(body);
+    
         mailSender.send(mail);
     }
+    
+    
 }
