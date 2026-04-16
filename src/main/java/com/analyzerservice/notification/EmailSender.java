@@ -22,7 +22,7 @@ public class EmailSender {
         mail.setTo(to);
     
         String subject = String.format(
-                "[ALERT][%s][%s] %s",
+                "[ALERT][%s] %s",
                 serviceName,
                 severity
         );
@@ -31,7 +31,7 @@ public class EmailSender {
 
     
         String body = String.format(
-            "[요약]\n%s\n\n%s",
+            "%s",
             analysis
         );
     
