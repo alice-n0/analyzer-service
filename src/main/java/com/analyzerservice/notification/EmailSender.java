@@ -22,7 +22,7 @@ public class EmailSender {
         mail.setTo(to);
     
         String subject = String.format(
-                "[ALERT][%s] %s",
+                "[ALERT][%s][%s] 장애 감지",
                 serviceName,
                 severity
         );

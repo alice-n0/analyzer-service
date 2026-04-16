@@ -31,7 +31,7 @@ public class GrafanaAnnotationClient {
         headers.setBearerAuth(grafanaApiToken);
         Map<String, Object> body = Map.of(
                 "text", summary,
-                "tags", List.of("AI", "ANOMALY", serviceName, "severity:" + severity.toLowerCase()),
+                "tags", List.of("AI분석", serviceName, severity.toLowerCase()),
                 "time", System.currentTimeMillis(),
                 "dashboardUID", "cfhjzkqjcj9q8e");
 
