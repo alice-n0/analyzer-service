@@ -161,19 +161,33 @@ public class AnalyzerScheduler {
         }
     }
 
-    private String determineSeverity(SystemMetrics metrics) {
+    private String determineSeverity(SystemMetrics m) {
 
-        if (metrics.error5xxRate() > 0.05 || metrics.dbSaturation() > 0.8) {
+        // 1. 확실한 장애
+        if (m.error5xxRate() > 0.05 || m.dbSaturation() > 0.8) {
             return "HIGH";
         }
 
-        if (metrics.latencySeconds() > AnomalyDetector.LATENCY_THRESHOLD
-                || metrics.errorRate() > AnomalyDetector.ERROR_RATE_THRESHOLD) {
+        // 2. latency는 트래픽 조건 필요
+        if (m.latencySeconds() > AnomalyDetector.LATENCY_THRESHOLD) {
+            if (m.rps() > 20) {   // 🔥 핵심
+                return "MEDIUM";
+            } else {
+                return "LOW";     // 저트래픽 → 의미 없음
+            }
+        }
+        if (m.latencySeconds() > 0.5 && m.p99LatencySeconds() > 1.0 && m.rps() > 20) {
             return "MEDIUM";
         }
-
+    
+        // 3. 에러율
+        if (m.errorRate() > AnomalyDetector.ERROR_RATE_THRESHOLD) {
+            return "MEDIUM";
+        }
+    
         return "LOW";
     }
+    
 
     private String extractSummary(String analysis) {
         if (analysis == null || analysis.isBlank()) {

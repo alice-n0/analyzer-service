@@ -1,10 +1,12 @@
 package com.analyzerservice.detector;
 
-import com.analyzerservice.metric.SystemMetrics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import org.springframework.stereotype.Component;
+
+import com.analyzerservice.metric.SystemMetrics;
 
 /**
  * 레이턴시(초)와 에러율을 고정 임계값과 비교해 이상 여부를 판단합니다.
@@ -16,8 +18,8 @@ public class AnomalyDetector {
     public static final double ERROR_RATE_THRESHOLD = 0.05;
 
     /**
-     * @param latency    지연(초). 유한값이고 {@code > LATENCY_THRESHOLD}이면 이상 후보.
-     * @param errorRate  에러율(0~1). 유한값이고 {@code > ERROR_RATE_THRESHOLD}이면 이상 후보.
+     * @param latency   지연(초). 유한값이고 {@code > LATENCY_THRESHOLD}이면 이상 후보.
+     * @param errorRate 에러율(0~1). 유한값이고 {@code > ERROR_RATE_THRESHOLD}이면 이상 후보.
      * @return 둘 중 하나라도 임계값을 넘으면 {@code true} (비유한 입력은 임계 초과로 보지 않음)
      */
     public boolean isAnomaly(double latency, double errorRate) {
@@ -49,18 +51,51 @@ public class AnomalyDetector {
     /**
      * 스케줄러 등에서 임계 비교를 한 곳에서만 하도록 {@link AnomalyDetectionResult}를 만듭니다.
      */
-    public AnomalyDetectionResult evaluate(SystemMetrics metrics) {
-        Objects.requireNonNull(metrics, "metrics");
-        return evaluate(metrics.latencySeconds(), metrics.errorRate());
+    public AnomalyDetectionResult evaluate(SystemMetrics m) {
+        Objects.requireNonNull(m, "metrics");
+
+        boolean errorAnomaly = isErrorRateExceeded(m.errorRate()) || m.error5xxRate() > 0.05;
+        boolean dbAnomaly = m.dbSaturation() > 0.8;
+
+        boolean latencyAnomaly = isLatencyExceeded(m.latencySeconds()) && m.rps() > 20; // 🔥 핵심
+
+        boolean anomaly = errorAnomaly || dbAnomaly || latencyAnomaly;
+
+        String summary = buildSummary(m, errorAnomaly, dbAnomaly, latencyAnomaly);
+
+        return new AnomalyDetectionResult(
+                anomaly,
+                m.latencySeconds(),
+                m.errorRate(),
+                latencyAnomaly,
+                errorAnomaly,
+                summary);
     }
 
-    public AnomalyDetectionResult evaluate(double latencySeconds, double errorRate) {
-        boolean latencyExceeded = isLatencyExceeded(latencySeconds);
-        boolean errorRateExceeded = isErrorRateExceeded(errorRate);
-        boolean anomaly = latencyExceeded || errorRateExceeded;
-        String summary = describeAnomalyReason(latencySeconds, errorRate);
-        return new AnomalyDetectionResult(
-                anomaly, latencySeconds, errorRate, latencyExceeded, errorRateExceeded, summary);
+    private String buildSummary(SystemMetrics m,
+            boolean error,
+            boolean db,
+            boolean latency) {
+
+        List<String> parts = new ArrayList<>();
+
+        if (error) {
+            parts.add("에러율 증가");
+        }
+
+        if (db) {
+            parts.add("DB 포화");
+        }
+
+        if (latency) {
+            parts.add("latency 증가 (트래픽 존재)");
+        }
+
+        if (parts.isEmpty()) {
+            return "정상 범위";
+        }
+
+        return String.join(", ", parts);
     }
 
     private static boolean isLatencyExceeded(double latency) {
